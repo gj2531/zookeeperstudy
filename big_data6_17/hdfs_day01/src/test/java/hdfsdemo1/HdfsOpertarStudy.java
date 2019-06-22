@@ -2,8 +2,7 @@ package hdfsdemo1;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.FsUrlStreamHandlerFactory;
+import org.apache.hadoop.fs.*;
 import org.testng.annotations.Test;
 
 import java.io.File;
@@ -69,5 +68,91 @@ public class HdfsOpertarStudy {
     public void getHdfs4() throws URISyntaxException, IOException {
         FileSystem fileSystem = FileSystem.newInstance(new URI("hdfs://node01:8020/"), new Configuration());
         System.out.println(fileSystem.toString());
+    }
+
+    /*
+    * 获取hdfs文件系统下所有的文件
+    * */
+    @Test
+    public void getAllHdfsFilePath() throws URISyntaxException, IOException {
+        //获取hdfs分布式文件客户端
+        FileSystem fileSystem = FileSystem.newInstance(new URI("hdfs://node01:8020"), new Configuration());
+        //获取根目录下的所有文件和文件夹
+        FileStatus[] fileStatuses = fileSystem.listStatus(new Path("/"));
+        //遍历获得的文件路径集合
+        for (FileStatus fileStatus : fileStatuses) {
+            //判断是否是文件夹，如果是就递归查询，不是就输出文件路径
+            if(fileStatus.isDirectory()){
+                getDirectorFile(fileSystem,fileStatus);
+            }else {
+                Path path = fileStatus.getPath();
+                System.out.println(path.toString());
+            }
+        }
+        //关闭客户端
+        fileSystem.close();
+    }
+    /*
+    * 递归获取文件夹下文件的方法
+    * */
+    private void getDirectorFile(FileSystem fileSystem, FileStatus fileStatus) throws IOException {
+        FileStatus[] fileStatuses = fileSystem.listStatus(fileStatus.getPath());
+        for (FileStatus status : fileStatuses) {
+            if (status.isDirectory()){
+                getDirectorFile(fileSystem,status);
+            }else {
+                System.out.println(status.getPath().toString());
+            }
+        }
+    }
+    
+    /*
+    * 使用listFiles遍历hgfs上面所有的文件
+    * */
+    @Test
+    public void getHdfsPath() throws URISyntaxException, IOException {
+        //获取hdfs分布式文件系统的客户端对象
+        FileSystem fileSystem = FileSystem.get(new URI("hdfs://node01:8020"), new Configuration());
+        //使用listFiles获取所有文件的迭代器
+        RemoteIterator<LocatedFileStatus> locatedFileStatusRemoteIterator = fileSystem.listFiles(new Path("/"), true);
+        //使用while循环遍历迭代器
+        while (locatedFileStatusRemoteIterator.hasNext()){
+            LocatedFileStatus next = locatedFileStatusRemoteIterator.next();
+            Path path = next.getPath();
+            System.out.println(path.toString());
+        }
+    }
+    /*
+    * 从hdfs上下载文件到本地
+    * 通过流的形式下载
+    * */
+    @Test
+    public void copyFileFromHdfs() throws Exception{
+        //获取hdfs分布式文件系统的客户端对象
+        FileSystem fileSystem = FileSystem.get(new URI("hdfs://node01:8020"), new Configuration());
+        //获取输入流对象
+        FSDataInputStream inputStream = fileSystem.open(new Path("/test/input/install.log"));
+        //获取输出流对象
+        FileOutputStream outputStream = new FileOutputStream(new File("D:\\myinstall.log"));
+
+        IOUtils.copy(inputStream,outputStream);
+
+        IOUtils.closeQuietly(inputStream);
+        IOUtils.closeQuietly(outputStream);
+        fileSystem.close();
+    }
+    /*
+     * 从hdfs上下载文件到本地
+     * 通过copyLocalFile的形式下载
+     *
+     * 待修改
+     * */
+    @Test
+    public void copyFileFromHdfs2() throws Exception{
+        //获取hdfs分布式文件系统的客户端对象
+        FileSystem fileSystem = FileSystem.get(new URI("hdfs://node01:8020"), new Configuration());
+        //使用copyLocalFile从hdfs上下载文件
+        fileSystem.copyToLocalFile(new Path("/test/input/install.log"),new Path("file:///D:\\myins.log"));
+        fileSystem.close();
     }
 }
