@@ -5,10 +5,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.*;
 import org.testng.annotations.Test;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -153,6 +150,70 @@ public class HdfsOpertarStudy {
         FileSystem fileSystem = FileSystem.get(new URI("hdfs://node01:8020"), new Configuration());
         //使用copyLocalFile从hdfs上下载文件
         fileSystem.copyToLocalFile(new Path("/test/input/install.log"),new Path("file:///D:\\myins.log"));
+        fileSystem.close();
+    }
+
+    /*
+    * 在hdfs上创建文件夹
+    * */
+    @Test
+    public void mkdirDir() throws Exception{
+        //获取hdfs分布式文件系统的客户端对象
+        FileSystem fileSystem = FileSystem.get(new URI("hdfs://node01:8020"), new Configuration());
+        //创建文件夹
+        fileSystem.mkdirs(new Path("/a/b/c"));
+        //关闭客户端
+        fileSystem.close();
+    }
+
+    /*
+    *hdfs文件的上传
+    * 通过copyFromLocalFile上传文件
+    * */
+    @Test
+    public void copyToHdfsFile() throws Exception{
+        //获取hdfs分布式文件系统的客户端对象
+        FileSystem fileSystem = FileSystem.get(new URI("hdfs://node01:8020"), new Configuration());
+        //上传文件到hdfs
+        fileSystem.copyFromLocalFile(false,new Path("file:///d:\\myinstall.log"),new Path("/a/b/c"));
+        //关闭hdfs客户端
+        fileSystem.close();
+    }
+
+    /*
+     *hdfs文件的上传
+     * 通过流的形式上传文件
+     * */
+    @Test
+    public void copyToHdfsFile2() throws Exception{
+        //获取hdfs分布式文件系统的客户端对象
+        FileSystem fileSystem = FileSystem.get(new URI("hdfs://node01:8020"), new Configuration());
+        //获取输出流对象
+        FSDataOutputStream fsDataOutputStream = fileSystem.create(new Path("/a/b/c/a.txt"));
+        //获取输入流对象读取本地文件系统的文件
+        FileInputStream fileInputStream = new FileInputStream(new File("D:\\myinstall.log"));
+        //
+        IOUtils.copy(fileInputStream,fsDataOutputStream);
+        //关闭流
+        IOUtils.closeQuietly(fsDataOutputStream);
+        IOUtils.closeQuietly(fileInputStream);
+        //关闭客户端
+        fileSystem.close();
+    }
+
+    /*
+    * hdfs的权限校验机制
+    * */
+    @Test
+    public void hdfsJiaoYan() throws Exception{
+        //获取hdfs分布式文件系统的客户端对象
+        //这种方法不太行，只有root用户有权限，所以需要伪造用户
+        //FileSystem fileSystem = FileSystem.get(new URI("hdfs://node01:8020"), new Configuration());
+        //伪造身份下载文件
+        FileSystem fileSystem = FileSystem.get(new URI("hdfs://node01:8020"), new Configuration(), "root");
+        //通过copytolocalfile方法从hdfs下载文件
+        fileSystem.copyToLocalFile(new Path("/config/core-site.xml"),new Path("file:///D:\\a.xml"));
+        //关闭客户端
         fileSystem.close();
     }
 }
