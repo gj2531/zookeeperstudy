@@ -216,4 +216,31 @@ public class HdfsOpertarStudy {
         //关闭客户端
         fileSystem.close();
     }
+
+    /*
+    * 上传时进行小文件合并
+    * */
+    @Test
+    public void megerHdfs() throws Exception{
+        //获取hdfs分布式文件系统的客户端对象
+        FileSystem fileSystem = FileSystem.get(new URI("hdfs://node01:8020"), new Configuration(), "root");
+        //获取文件输出流
+        FSDataOutputStream fsDataOutputStream = fileSystem.create(new Path("/bigfile.xml"));
+        //获取本地文件系统
+        LocalFileSystem localFileSystem = FileSystem.getLocal(new Configuration());
+        //通过本地文件系统获取一个文件列表，是一个集合
+        FileStatus[] fileStatuses = localFileSystem.listStatus(new Path("file:///G:\\大数据5期\\hadoop\\Hadoop课程资料\\3、大数据离线第三天\\上传小文件合并"));
+        //循环遍历这个集合，拿到所有的输入流，读取本地文件系统中的文件，然后输出到hdfs上的大文件中
+        for (FileStatus fileStatus : fileStatuses) {
+            Path path = fileStatus.getPath();
+            FSDataInputStream inputStream = localFileSystem.open(path);
+            IOUtils.copy(inputStream,fsDataOutputStream);
+            //关闭输入流
+            IOUtils.closeQuietly(inputStream);
+        }
+        //关闭输出流 关闭本地文件系统的客户端 关闭hdfs文件系统的客户端
+        IOUtils.closeQuietly(fsDataOutputStream);
+        localFileSystem.close();
+        fileSystem.close();
+    }
 }
