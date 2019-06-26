@@ -27,6 +27,8 @@ public class SortMain extends Configured implements Tool {
         job.setMapOutputKeyClass(PairSort.class);
         job.setMapOutputValueClass(Text.class);
         //第三步到第六步省略
+        //第五步：设置规约类
+        job.setCombinerClass(MyCombiner.class);
         //第七步：设置reducer类
         job.setReducerClass(SortReduce.class);
         //设置泛型类型
@@ -34,7 +36,7 @@ public class SortMain extends Configured implements Tool {
         job.setOutputValueClass(NullWritable.class);
         //第八步：输出
         job.setOutputFormatClass(TextOutputFormat.class);
-        TextOutputFormat.setOutputPath(job,new Path("file:///G:\\大数据5期\\hadoop\\Hadoop课程资料\\4、大数据离线第四天\\排序\\out2"));
+        TextOutputFormat.setOutputPath(job,new Path("file:///G:\\大数据5期\\hadoop\\Hadoop课程资料\\4、大数据离线第四天\\排序\\out3"));
         boolean b = job.waitForCompletion(true);
         return b?0:1;
     }
