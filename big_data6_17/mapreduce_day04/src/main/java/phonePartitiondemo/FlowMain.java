@@ -36,7 +36,7 @@ public class FlowMain extends Configured implements Tool {
         job.setOutputValueClass(FlowBean.class);
         //第八步：输出数据
         job.setOutputFormatClass(TextOutputFormat.class);
-        TextOutputFormat.setOutputPath(job,new Path("hdfs://node01:8020/phone_partition_out"));
+        TextOutputFormat.setOutputPath(job,new Path("hdfs://node01:8020/phone_partition_compress_out"));
 
         //提交
         boolean b = job.waitForCompletion(true);
@@ -44,7 +44,14 @@ public class FlowMain extends Configured implements Tool {
     }
 
     public static void main(String[] args) throws Exception {
-        int run = ToolRunner.run(new Configuration(), new FlowMain(), args);
+        //使用snappy压缩的配置
+        Configuration configuration = new Configuration();
+        configuration.set("mapreduce.map.output.compress","true");
+        configuration.set("mapreduce.map.output.compress.codec","org.apache.hadoop.io.compress.SnappyCodec");
+        configuration.set("mapreduce.output.fileoutputformat.compress","true");
+        configuration.set("mapreduce.output.fileoutputformat.compress.type","RECORD");
+        configuration.set("mapreduce.output.fileoutputformat.compress.codec","org.apache.hadoop.io.compress.SnappyCodec");
+        int run = ToolRunner.run(configuration, new FlowMain(), args);
         System.exit(run);
     }
 }
