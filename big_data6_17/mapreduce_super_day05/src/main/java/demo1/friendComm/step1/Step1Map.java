@@ -1,4 +1,4 @@
-package friendComm.step1;
+package demo1.friendComm.step1;
 
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;

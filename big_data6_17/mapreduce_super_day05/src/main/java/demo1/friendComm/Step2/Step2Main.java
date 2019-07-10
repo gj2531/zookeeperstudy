@@ -1,4 +1,4 @@
-package friendComm.Step2;
+package demo1.friendComm.Step2;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
